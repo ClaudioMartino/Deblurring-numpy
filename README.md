@@ -42,16 +42,31 @@ $$ F(u,v) = \frac{G(u,v)}{\Omega(u,v)} $$
 
 e prendendo la trasformata di Fourier inversa. 
 
-I precedenti calcoli non tengono in considerazione il rumore introdotto ad ogni passaggio. In quel caso bisognerebbe stimare  $\hat{f}(x,y)$ che minimizza l'errore quadratico medio $\mathbb{E} \left| f(x,y) - \hat{f}(x,y) \right|^2$ (v. [Wiener](https://en.wikipedia.org/wiki/Wiener_deconvolution)).
+NB: I precedenti calcoli non tengono in considerazione il rumore introdotto ad ogni passaggio. In quel caso bisognerebbe stimare  $\hat{f}(x,y)$ che minimizza l'errore quadratico medio $\mathbb{E} \left| f(x,y) - \hat{f}(x,y) \right|^2$ (v. [Wiener](https://en.wikipedia.org/wiki/Wiener_deconvolution)).
 
 ## Struttura 
-Come input abbiamo un'immagine RGB con estensione [`.ppm`](https://en.wikipedia.org/wiki/Netpbm). Il file viene immediatamente convertito in scala di grigi e salvato come `.pgm`. Nella repository sono già presenti due immagini di esempio: la classica [Lenna](https://en.wikipedia.org/wiki/Lenna) [1] e la meno classica Sabrina Salerno [2].
+Come input abbiamo un'immagine RGB con estensione [`.ppm`](https://en.wikipedia.org/wiki/Netpbm). Il file viene immediatamente convertito in scala di grigi e salvato come `.pgm`. Nella repository sono già presenti due immagini di esempio $512 \times 512$ : la classica [Lenna](https://en.wikipedia.org/wiki/Lenna) [1] e la meno classica (ma ben più importante) Sabrina Salerno [2].
+
+L'immagine in bianco e nero viene filtrata in modo da ottenerne una versione sfocata. Il filtro di Gauss è implenetato con una convoluzione 2D o con un prodotto nel dominio delle frequenze:
+- nel primo caso il risultato è un'immagine $N-2 \times N-2$ (a causa degli effetti ai bordi) e la funzione che esegue la convoluzione è stata scritta a mano;
+- nel secondo caso si è utilizzata la FFT 2D di Numpy ([`fft.fft2`](https://numpy.org/doc/stable/reference/generated/numpy.fft.fft2.html)) per calcolare $ F(u,v) $ e $\Omega(u,v)$.
+
+...
 
 ## Risultati
+Di seguito i risultato ottenuti con Sabrina (immagini riscalate e convertite in `.png` per comodità). L'immagine di input è la seguente:
+
 [<img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/sabrina.png" width="200">](docs/images/sabrina.png)
+
+Una volta convertita in scala di grigi diventa
 
 [<img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/sabrina_gray.png" width="200">](docs/images/sabrina_gray.png)
 
+...
+
+## Conclusione 
+...
+
 ## Fonti
-- [1] *Playboy*, novembre 1972, Playboy Enterprises
-- [2] *Playmen*, settembre 1988, Tattilo Editrice
+- [1] *Playboy*, vol. 19, n. 11, novembre 1972, Playboy Enterprises.
+- [2] *Playmen*, anno XXII, n.9, settembre 1988, Tattilo Editrice.
