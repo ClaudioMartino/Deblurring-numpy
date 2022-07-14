@@ -8,7 +8,6 @@ La presente repository ha puramente scopi educativi. Consiste in una semplice im
 - Python 3.8.2
 - Numpy 1.23.0
 
-
 Ho cercato di limitare al minimo le librerie esterne, solo Numpy è necessario (semplicità di gestione di array 2D e presenza di FFT), ma non escludo un giorno di creare uno script totalmente indipendente. Numpy può essere installato con `pip install numpy`.
 
 ## Teoria
