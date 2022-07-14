@@ -1,8 +1,8 @@
 import numpy as np
 
-def create_file_name(base, suffix):
+def create_file_name(directory, base, suffix):
     ext = ".pgm"
-    return base[:-4] + "_" + suffix + ext
+    return directory + "/" + base[:-4] + "_" + suffix + ext
 
 def open_ppm_as_array(path_to_file):
     # Open .ppm file
@@ -34,7 +34,7 @@ def open_ppm_as_array(path_to_file):
             assert ord(tmp[i+j*(3*width)]) <= max_value
             rgb_image_array[j][i] = ord(tmp[i+j*(3*width)])
 
-    return [width, height, max_value, rgb_image_array]
+    return rgb_image_array
 
 def rgb_to_grayscale(rgb_image):
     height, width = rgb_image.shape
@@ -68,16 +68,34 @@ def convolution_3x3(im, c, flag):
                             + c[2][0]*im[j+2][i] + c[2][1]*im[j+2][i+1] + c[2][2]*im[j+2][i+2])
 
     elif flag == 1: # extend
-        # TODO?
-        out = np.empty([h, w], dtype=np.uint8)
+        out = np.zeros([h, w], dtype=np.uint8)
+
+        for j in range(h-2):
+            for i in range(w-2):
+                out[j+1][i+1] = int(c[0][0]*im[j][i] + c[0][1]*im[j][i+1] + c[0][2]*im[j][i+2] 
+                            + c[1][0]*im[j+1][i] + c[1][1]*im[j+1][i+1] + c[1][2]*im[j+1][i+2]
+                            + c[2][0]*im[j+2][i] + c[2][1]*im[j+2][i+1] + c[2][2]*im[j+2][i+2])
+
+        for i in range(w-2):
+            out[0][i+1] = out[1][i+1]
+            out[h-1][i+1] = out[h-2][i+1]
+
+        for j in range(h-2):
+            out[j+1][0] = out[j+1][1]
+            out[j+1][w-1] = out[j+1][w-2]
+
+        out[0][0]     = out[1][1]
+        out[0][w-1]   = out[1][i+1]
+        out[h-1][0]   = out[h-2][i+1]
+        out[h-1][w-1] = out[h-2][i+1]
 
     return out
 
 def convolution(im, c, flag):
-    # TODO 5 7 ....
     if c.shape == (3,3):
         return convolution_3x3(im, c, flag)
     else:
+    # TODO 5 7 ....
         return convolution_3x3(im, c, flag)
 
 def save_pgm_file(image_array, path_to_file):
@@ -135,78 +153,134 @@ def zero_pad(x, height_new, width_new):
             out[j][i]=x[j][i]
     return out
 
+def gaussian_kernel(size):
+    assert size in [3,5,7]
+
+    if size == 3:
+        return np.array([[1/16, 1/8, 1/16], [1/8, 1/4, 1/8], [1/16, 1/8, 1/16]])
+    else:
+        # TODO
+        return np.array([[1/16, 1/8, 1/16], [1/8, 1/4, 1/8], [1/16, 1/8, 1/16]])
+
+def symmetrization(im):
+    height, width = im.shape
+
+    out = np.zeros([height*2, width*2], dtype=(im.dtype))
+
+    for j in range(height):
+        for i in range(width):
+            out[j][i] = im[j][i]
+            out[j][i+width] = im[j][width-1-i]
+            out[j+height][i] = im[height-1-j][i]
+            out[j+height][i+width] = im[height-1-j][width-1-i]
+
+    return out
+
+
+
 ### Main ###
 images_dir = "images/"
-input_image_name = "sabrina.ppm"
-#input_image_name = "lena.ppm"
-input_image = images_dir + input_image_name
+input_images_dir = images_dir + "sample_input/"
+output_images_dir = images_dir + "results/"
 
-grayscale_image =  create_file_name(input_image, "gray")
-dft_image =        create_file_name(input_image, "dft" )
-idft_image =       create_file_name(input_image, "idft")
-blurred_image =    create_file_name(input_image, "blur")
-blurred_image_f =  create_file_name(input_image, "blur_f")
-dft_blur_image =   create_file_name(input_image, "dft_blur")
-dft_blur_image_f = create_file_name(input_image, "dft_blur_f")
-deconv_image =     create_file_name(input_image, "deconv")
+#input_image_name = "sabrina.ppm"
+input_image_name = "lena.ppm"
+
+grayscale_image =  create_file_name(output_images_dir, input_image_name, "gray")
+symmetric_image =  create_file_name(output_images_dir, input_image_name, "symm")
+dft_image =        create_file_name(output_images_dir, input_image_name, "dft" )
+idft_image =       create_file_name(output_images_dir, input_image_name, "idft")
+blurred_image =    create_file_name(output_images_dir, input_image_name, "blur")
+blurred_image_f =  create_file_name(output_images_dir, input_image_name, "blur_f")
+dft_blur_image =   create_file_name(output_images_dir, input_image_name, "dft_blur")
+dft_blur_image_f = create_file_name(output_images_dir, input_image_name, "dft_blur_f")
+deconv_image =     create_file_name(output_images_dir, input_image_name, "deconv")
 
 # Open .ppm file as array
-[width, height, max_value, rgb_image_array] = open_ppm_as_array(input_image)
+input_image = input_images_dir + input_image_name
+rgb_image_array = open_ppm_as_array(input_image)
 
 # Convert RGB array to grayscale
 grayscale_image_array = rgb_to_grayscale(rgb_image_array)
 save_pgm_file(grayscale_image_array, grayscale_image)
 
-# Fourier
+# FFT - IFFT
 dft_image_array = np.fft.fft2(grayscale_image_array)
+idft_image_array = np.fft.ifft2(dft_image_array)
+
+print("SNR FFT/IFFT: " + str(compute_SNR_in_dB(grayscale_image_array, idft_image_array.real.astype(np.uint8)) ))
+
+# FFT - IIF with symmetrization
+symm_image_array = symmetrization(grayscale_image_array)
+save_pgm_file(symm_image_array, symmetric_image)
+
+dft_image_array = np.fft.fft2(symm_image_array)
 fourier_abs_log_scaled = rearrange_FFT(dft_image_array)
 save_pgm_file(fourier_abs_log_scaled, dft_image)
 
-# Inverse Fourier
 idft_image_array = np.fft.ifft2(dft_image_array)
-save_pgm_file((idft_image_array.real).astype(np.uint8), idft_image)
+save_pgm_file(idft_image_array[0:512, 0:512].real.astype(np.uint8), idft_image)
 
-print(compute_SNR_in_dB(grayscale_image_array, (idft_image_array.real).astype(np.uint8) ))
+print("SNR FFT/IFFT: " + str(compute_SNR_in_dB(grayscale_image_array, idft_image_array.real[0:512, 0:512].astype(np.uint8)) ))
+
+
 
 # Gaussian filter
-kernel_blur = np.array([[1/16, 1/8, 1/16], [1/8, 1/4, 1/8], [1/16, 1/8, 1/16]])
+kernel_blur = gaussian_kernel(3)
 zero_padded_kernel = zero_pad(kernel_blur, dft_image_array.shape[0], dft_image_array.shape[1])
 dft_kernel_blur = np.fft.fft2(zero_padded_kernel)
 ## Convolution in space domain
-blurred_image_array = convolution(grayscale_image_array, kernel_blur, 0)
-save_pgm_file(blurred_image_array, blurred_image)
+blurred_image_array = convolution(symm_image_array, kernel_blur, 1)
+save_pgm_file(blurred_image_array[0:512, 0:512], blurred_image)
 save_pgm_file(rearrange_FFT(np.fft.fft2(blurred_image_array)), dft_blur_image)
-print(compute_SNR_in_dB(grayscale_image_array[1:-1,1:-1], blurred_image_array ))
-# Product in Fourier domain
+print("SNR conv: " + str(compute_SNR_in_dB(grayscale_image_array, blurred_image_array[0:512, 0:512]) ))
+## Product in Fourier domain
 save_pgm_file(rearrange_FFT(dft_image_array * dft_kernel_blur), dft_blur_image_f)
 blurred_image_array = (np.fft.ifft2(dft_image_array * dft_kernel_blur)).real.astype(np.uint8)
-save_pgm_file(blurred_image_array, blurred_image_f)
-print(compute_SNR_in_dB(grayscale_image_array, blurred_image_array ))
+save_pgm_file(blurred_image_array[0:512, 0:512], blurred_image_f)
+print("SNR prod: " + str(compute_SNR_in_dB(grayscale_image_array, blurred_image_array[0:512, 0:512]) ))
 
 # De-blurring
 inverse_dft_kernel_blur = np.empty(dft_kernel_blur.shape, dtype=np.complex128)
-snr = 0
-th = 0.00001
-step = 0.1
-par = 1.5
-while(step > th): # look for min(SNR); if we don't fall in local min or we too converge rapidly, it should work
-    for j in range(512):
-        for i in range(512):
-            if np.abs(dft_kernel_blur[j][i]) < par: # change this value according to snr
-                inverse_dft_kernel_blur[j][i] = 1 # cannot recover
-            else:
-                inverse_dft_kernel_blur[j][i] = 1/dft_kernel_blur[j][i]
+limit = 1 # initial kernel limit
+kk_max = 3
+k_max = 10
+snr = np.zeros(k_max)
+step = limit/k_max
+for kk in range(kk_max): # look for min(SNR)
+    for k in range(k_max):
+        for j in range(blurred_image_array.shape[0]):
+            for i in range(blurred_image_array.shape[1]):
+                if np.abs(dft_kernel_blur[j][i]) < limit: # change limit value according to SNR
+                    inverse_dft_kernel_blur[j][i] = 1 # smaller than limit, cannot recover
+                else:
+                    inverse_dft_kernel_blur[j][i] = 1/dft_kernel_blur[j][i]
     
-    deconv_f = np.fft.fft2(blurred_image_array) * inverse_dft_kernel_blur
-    deconv_s = np.fft.ifft2(deconv_f)
-    snr_new = compute_SNR_in_dB(grayscale_image_array, deconv_s.real.astype(np.uint8) )
+        dft_blurred_image = np.fft.fft2(blurred_image_array)
+        deconv_f = dft_blurred_image * inverse_dft_kernel_blur
+        deconv_s = np.fft.ifft2(deconv_f)
+        snr[k] = compute_SNR_in_dB(grayscale_image_array, deconv_s[0:512, 0:512].real.astype(np.uint8) )
+        #print("limit: " + str(limit) + " SNR deblur: " + str(snr[k]))
+        limit -= step
 
-    if(snr_new >= snr and par - step > th):
-        par -= step
-    else:
-        step /= 10
-        par += step
-    snr = snr_new
-print(snr)
-save_pgm_file(deconv_s.real.astype(np.uint8), deconv_image)
+    ind_max = np.argmax(snr)
+    #print(ind_max)
+    limit += 10*step
+    limit -= (ind_max)*step
+    step /= 10
+
+for j in range(blurred_image_array.shape[0]):
+    for i in range(blurred_image_array.shape[1]):
+        if np.abs(dft_kernel_blur[j][i]) < limit: # change limit value according to SNR
+            inverse_dft_kernel_blur[j][i] = 1 # smaller than limit, cannot recover
+        else:
+            inverse_dft_kernel_blur[j][i] = 1/dft_kernel_blur[j][i]
+ 
+dft_blurred_image = np.fft.fft2(blurred_image_array)
+deconv_f = dft_blurred_image * inverse_dft_kernel_blur
+deconv_s = np.fft.ifft2(deconv_f)
+print(" SNR deblur: " + str(compute_SNR_in_dB(grayscale_image_array, deconv_s[0:512, 0:512].real.astype(np.uint8))))
+ 
+save_pgm_file(deconv_s[0:512, 0:512].real.astype(np.uint8), deconv_image)
+#save_pgm_file(rearrange_FFT(inverse_dft_kernel_blur), deconv_image)
 
