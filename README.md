@@ -66,10 +66,13 @@ Una volta convertita in scala di grigi diventa
 
 [<img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/sabrina_gray.png" width="200">](docs/images/sabrina_gray.png)
 
-...
+L'immagine è stata sfocata con una convoluzione
 
-## Conclusione 
-...
+[<img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/sabrina_blur.png" width="200">](docs/images/sabrina_blur.png)
+
+L'operazione di de-convoluzione restituisce un'immagine più nitida, attenuando gli effetti della sfocatura
+
+[<img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/sabrina_deconv.png" width="200">](docs/images/sabrina_deconv.png)
 
 ## Fonti
 - [1] *Playboy*, vol. 19, n. 11, novembre 1972, Playboy Enterprises.
