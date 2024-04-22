@@ -8,7 +8,7 @@ La presente repository ha puramente scopi educativi. Consiste in una semplice im
 - Python 3.8.2
 - Numpy 1.23.0
 
-Ho cercato di limitare al minimo le librerie esterne, solo Numpy è necessario (semplicità di gestione di array 2D e presenza di FFT), ma non escludo un giorno di creare uno script totalmente indipendente. Numpy può essere installato con `pip install numpy`.
+Ho cercato di limitare al minimo le librerie esterne, solo Numpy è necessario (semplicità di gestione di array 2D e presenza di FFT), ma non escludo un giorno di creare uno script totalmente indipendente. Numpy può essere installato con `pip3 install numpy`.
 
 ## Teoria
 La trasformata di Fourier discreta (DFT) di un segnale 2D $f(x,y)$ (un'immagine, per esempio) con dimensioni $N \times M$ è:
@@ -46,13 +46,14 @@ $$ F(u,v) = \frac{G(u,v)}{\Omega(u,v)} $$
 
 e prendendo la trasformata di Fourier inversa. 
 
-NB: I precedenti calcoli non tengono in considerazione il rumore introdotto ad ogni passaggio. In quel caso bisognerebbe stimare  $\hat{f}(x,y)$ che minimizza l'errore quadratico medio $\mathbb{E} \left| f(x,y) - \hat{f}(x,y) \right|^2$ (v. [Wiener](https://en.wikipedia.org/wiki/Wiener_deconvolution)).
+> [!NOTE]
+> I precedenti calcoli non tengono in considerazione il rumore introdotto ad ogni passaggio. In quel caso bisognerebbe stimare  $\hat{f}(x,y)$ che minimizza l'errore quadratico medio $\mathbb{E} \left| f(x,y) - \hat{f}(x,y) \right|^2$ (v. [Wiener](https://en.wikipedia.org/wiki/Wiener_deconvolution)).
 
 ## Struttura 
-Come input abbiamo un'immagine RGB con estensione [`.ppm`](https://en.wikipedia.org/wiki/Netpbm). Il file viene immediatamente convertito in scala di grigi e salvato come `.pgm`. Nella repository sono già presenti due immagini di esempio $512 \times 512$ : la classica [Lenna](https://en.wikipedia.org/wiki/Lenna) [1] e la meno classica (ma ben più importante) Sabrina Salerno [2].
+Come input abbiamo un'immagine RGB con estensione [`.ppm`](https://en.wikipedia.org/wiki/Netpbm). Il file viene immediatamente convertito in scala di grigi e salvato come `.pgm`. Nella repository sono già presenti due immagini di esempio $512 \times 512$: la classica [Lenna](https://en.wikipedia.org/wiki/Lenna)[^1] e la meno classica (ma ben più importante) Sabrina Salerno[^2].
 
 L'immagine in bianco e nero viene filtrata in modo da ottenerne una versione sfocata. Il filtro di Gauss è implementato con una convoluzione 2D o con un prodotto nel dominio delle frequenze:
-- nel primo caso il risultato è un'immagine $N-2 \times N-2$ (a causa degli effetti ai bordi) e la funzione che esegue la convoluzione è stata scritta a mano;
+- nel primo caso la funzione che esegue la convoluzione è stata scritta a mano;
 - nel secondo caso si è utilizzata la FFT 2D di Numpy ([`fft.fft2`](https://numpy.org/doc/stable/reference/generated/numpy.fft.fft2.html)) per calcolare $F(u,v)$ e $\Omega(u,v)$.
 
 ...
@@ -75,5 +76,5 @@ L'operazione di de-convoluzione restituisce un'immagine più nitida, attenuando 
 [<img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/sabrina_deconv.png" width="200">](docs/images/sabrina_deconv.png)
 
 ## Fonti
-- [1] *Playboy*, vol. 19, n. 11, novembre 1972, Playboy Enterprises.
-- [2] *Playmen*, anno XXII, n.9, settembre 1988, Tattilo Editrice.
+[^1]: *Playboy*, vol. 19, [n. 11](https://images4.imagebam.com/cd/10/16/ME12BMO_o.jpg), novembre 1972, Playboy Enterprises.
+[^2]: *Playmen*, anno XXII, [n. 9](https://images3.imagebam.com/8e/1b/c6/54f4fd195104304.jpg), settembre 1988, Tattilo Editrice.

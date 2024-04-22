@@ -157,9 +157,11 @@ def zero_pad(x, height_new, width_new):
     assert width_new >= width 
     assert height_new >= height
     out = np.zeros([height_new, width_new], dtype=(x.dtype))
+    sh_v = height_new // 2 - height // 2
+    sh_h = width_new // 2  - width // 2
     for j in range(height):
         for i in range(width):
-            out[j][i]=x[j][i]
+            out[j+sh_v][i+sh_h]=x[j][i]
     return out
 
 def gaussian_kernel(size):
