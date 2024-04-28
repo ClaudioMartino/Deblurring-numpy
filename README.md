@@ -61,19 +61,27 @@ L'immagine in bianco e nero viene filtrata in modo da ottenerne una versione sfo
 ## Risultati
 Di seguito i risultati ottenuti con Lena (qui le immagini sono riscalate e convertite in `.png`). L'immagine di input è la seguente:
 
-[<img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/lena.png" width="200">](docs/images/lena.png)
+[<img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/lena.png" width="300">](docs/images/lena.png)
 
 Una volta convertita in scala di grigi diventa
 
-[<img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/lena_gray.png" width="200">](docs/images/lena_gray.png)
+[<img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/lena_gray.png" width="300">](docs/images/lena_gray.png)
 
-L'immagine è stata sfocata con una convoluzione e un kernel 3x3
+L'immagine è stata sfocata con una convoluzione (3x3, 5x5, 7x7)
 
-[<img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/3_lena_blur.png" width="200">](docs/images/3_lena_blur.png)
+<p>
+<a href="docs/images/3_lena_blur.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/3_lena_blur.png" width="300"></a>
+<a href="docs/images/5_lena_blur.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/5_lena_blur.png" width="300"></a>
+<a href="docs/images/7_lena_blur.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/7_lena_blur.png" width="300"></a>
+</p>
 
 L'operazione di de-convoluzione restituisce un'immagine più nitida, attenuando gli effetti della sfocatura
 
-[<img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/3_lena_deconv.png" width="200">](docs/images/3_lena_deconv.png)
+<p>
+<a href="docs/images/3_lena_deconv.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/3_lena_deconv.png" width="300"></a>
+<a href="docs/images/5_lena_deconv.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/5_lena_deconv.png" width="300"></a>
+<a href="docs/images/7_lena_deconv.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/7_lena_deconv.png" width="300"></a>
+</p>
 
 ## Fonti
 [^1]: *Playboy*, vol. 19, [n. 11](https://images4.imagebam.com/cd/10/16/ME12BMO_o.jpg), novembre 1972, Playboy Enterprises.
