@@ -5,7 +5,7 @@ Buongiorno a tutti,
 La presente repository ha puramente scopi educativi. Consiste in una semplice implementazione in [Python3](https://www.python.org/) di un algoritmo di [deconvoluzione](https://en.wikipedia.org/wiki/Deconvolution) per recuperare un'immagine corrotta da una sfocatura gaussiana ("[deblurring](https://en.wikipedia.org/wiki/Deblurring)"). Siete liberi di utilizzare il codice come meglio credete, citate l'autore originale (io) in caso di pubblicazione e nel caso vi fosse utile fatemelo sapere.
 
 ## Prerequisiti
-- Python 3.8.2
+- Python 3.11.1
 - Numpy 1.23.0
 
 Ho cercato di limitare al minimo le librerie esterne, solo Numpy è necessario (semplicità di gestione di array 2D e presenza di FFT), ma non escludo un giorno di creare uno script totalmente indipendente. Numpy può essere installato con `pip3 install numpy`.
@@ -50,38 +50,44 @@ e prendendo la trasformata di Fourier inversa.
 > I precedenti calcoli non tengono in considerazione il rumore introdotto ad ogni passaggio. In quel caso bisognerebbe stimare  $\hat{f}(x,y)$ che minimizza l'errore quadratico medio $\mathbb{E} \left| f(x,y) - \hat{f}(x,y) \right|^2$ (v. [Wiener](https://en.wikipedia.org/wiki/Wiener_deconvolution)).
 
 ## Struttura 
-Come input abbiamo un'immagine RGB con estensione [`.ppm`](https://en.wikipedia.org/wiki/Netpbm). Il file viene immediatamente convertito in scala di grigi e salvato come `.pgm`. Nella repository sono già presenti due immagini di esempio $512 \times 512$: la classica [Lenna](https://en.wikipedia.org/wiki/Lenna)[^1] e la meno classica (ma ben più importante) Sabrina Salerno[^2].
+Come input abbiamo un'immagine RGB con estensione [`.ppm`](https://en.wikipedia.org/wiki/Netpbm). Il file viene immediatamente convertito in scala di grigi e salvato come `.pgm`. Nella repository sono già presenti varie immagini di esempio $512 \times 512$, tra cui la classica [Lenna](https://en.wikipedia.org/wiki/Lenna)[^1] e la meno classica (ma ben più importante) Sabrina Salerno[^2].
 
 L'immagine in bianco e nero viene filtrata in modo da ottenerne una versione sfocata. Il filtro di Gauss è implementato con una convoluzione 2D o con un prodotto nel dominio delle frequenze:
 - nel primo caso la funzione che esegue la convoluzione è stata scritta a mano;
 - nel secondo caso si è utilizzata la FFT 2D di Numpy ([`fft.fft2`](https://numpy.org/doc/stable/reference/generated/numpy.fft.fft2.html)) per calcolare $F(u,v)$ e $\Omega(u,v)$.
 
-...
-
 ## Risultati
-Di seguito i risultati ottenuti con Lena (qui le immagini sono riscalate e convertite in `.png`). L'immagine di input è la seguente:
+Di seguito i risultati ottenuti con Lena (qui le immagini sono riscalate e convertite in `.png`). L'immagine di input viene convertita in scala di grigi.
 
-[<img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/lena.png" width="300">](docs/images/lena.png)
+<p>
+<a href="docs/images/lena.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/lena.png" width="300"></a>
+<a href="docs/images/lena_gray.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/lena_gray.png" width="300"></a>
+</p>
 
-Una volta convertita in scala di grigi diventa
-
-[<img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/lena_gray.png" width="300">](docs/images/lena_gray.png)
-
-L'immagine è stata sfocata con una convoluzione (3x3, 5x5, 7x7)
+L'immagine è stata sfocata con una convoluzione (3x3, 5x5, 7x7). L'operazione di de-convoluzione restituisce un'immagine più nitida, attenuando gli effetti della sfocatura.
 
 <p>
 <a href="docs/images/3_lena_blur.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/3_lena_blur.png" width="300"></a>
-<a href="docs/images/5_lena_blur.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/5_lena_blur.png" width="300"></a>
-<a href="docs/images/7_lena_blur.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/7_lena_blur.png" width="300"></a>
+<a href="docs/images/3_lena_deconv.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/3_lena_deconv.png" width="300"></a>
 </p>
-
-L'operazione di de-convoluzione restituisce un'immagine più nitida, attenuando gli effetti della sfocatura
 
 <p>
-<a href="docs/images/3_lena_deconv.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/3_lena_deconv.png" width="300"></a>
+<a href="docs/images/5_lena_blur.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/5_lena_blur.png" width="300"></a>
 <a href="docs/images/5_lena_deconv.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/5_lena_deconv.png" width="300"></a>
+</p>
+
+<p>
+<a href="docs/images/7_lena_blur.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/7_lena_blur.png" width="300"></a>
 <a href="docs/images/7_lena_deconv.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/7_lena_deconv.png" width="300"></a>
 </p>
+
+## Risultati
+
+<a href="images/results/plot_3.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/images/results/plot_3.png"></a>
+
+<a href="images/results/plot_5.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/images/results/plot_5.png"></a>
+
+<a href="images/results/plot_7.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/images/results/plot_7.png"></a>
 
 ## Fonti
 [^1]: *Playboy*, vol. 19, [n. 11](https://images4.imagebam.com/cd/10/16/ME12BMO_o.jpg), novembre 1972, Playboy Enterprises.
