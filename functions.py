@@ -5,34 +5,29 @@ def create_file_name(directory, base, suffix):
     return directory + "/" + base[:-4] + "_" + suffix + ext
 
 def open_ppm_as_array(path_to_file):
-    # Open .ppm file
     lines = []
-    with open(path_to_file, encoding='latin-1') as f:
-        lines = f.readlines()
+    # Open .ppm file
+    with open(path_to_file, "rb") as f:
+        # Check header
+        line = f.readline()
+        assert line == b'P6\n'
 
-    # Check header
-    assert lines[0] == "P6\n"
-    assert len(lines[1].split()) == 2
-    assert lines[1].split()[0].isdigit()
-    assert lines[1].split()[1].isdigit()
-    assert lines[2].split()[0].isdigit()
-    assert int(lines[2]) <= 255
-    width  = int(lines[1].split()[0])
-    height = int(lines[1].split()[1])
-    max_value = int(lines[2])
+        line = f.readline().split()
+        width  = int(line[0])
+        height = int(line[1])
+        line = f.readline()
+        max_value = int(line[:-1])
+        assert max_value <= 255
 
-    # Save pixels to array
-    assert sum(len(x) for x in lines[3:]) == 3*width*height
-    tmp = []
-    for x in lines[3:]: # row-wise
-        for xx in x: # element-wise
-            tmp.append(xx)
-    assert len(tmp) == 3*width*height
+        # Read pixels
+        lines = f.read()
+        assert len(lines) == 3*width*height
+
+    # Save pixels to 2D array
     rgb_image_array = np.empty([height, 3*width], dtype=np.uint8)
     for j in range(height):
         for i in range(3*width):
-            assert ord(tmp[i+j*(3*width)]) <= max_value
-            rgb_image_array[j][i] = ord(tmp[i+j*(3*width)])
+            rgb_image_array[j][i] = lines[i+j*(3*width)]
 
     return rgb_image_array
 
