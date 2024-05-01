@@ -15,6 +15,7 @@ def open_ppm_as_array(path_to_file):
         line = f.readline().split()
         width  = int(line[0])
         height = int(line[1])
+
         line = f.readline()
         max_value = int(line[:-1])
         assert max_value <= 255
@@ -58,6 +59,7 @@ def convolution(im, c, flag):
     assert w-n+1 > 0
 
     if flag == 0: # crop borders
+        # TODO never tested
         out = np.zeros([(h-n+1), (w-n+1)], dtype=np.uint8)
 
         for j in range(h-n+1):
@@ -139,7 +141,7 @@ def compute_power(x):
 
 def compute_SNR(x, y):
     assert x.shape == y.shape
-    noise = y - x
+    noise = (y.astype(np.int16) - x.astype(np.int16))
     noise_power = compute_power(noise)
     signal_power = compute_power(x)
     return signal_power/noise_power

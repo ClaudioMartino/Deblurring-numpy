@@ -5,8 +5,9 @@ La presente repository ha puramente scopi educativi. Consiste in una semplice im
 ## Prerequisiti
 - Python 3.11.1
 - Numpy 1.23.0
+- Matplotlib 3.8.4
 
-Ho cercato di limitare al minimo le librerie esterne, solo Numpy è necessario (semplicità di gestione di array 2D e presenza di DFT), ma non escludo un giorno di creare uno script totalmente indipendente. Numpy può essere installato con `pip3 install numpy`.
+Ho cercato di limitare al minimo le librerie esterne, solo Numpy è necessario (semplicità di gestione di array 2D e presenza di DFT), ma non escludo un giorno di creare uno script totalmente indipendente. Numpy può essere installato con `pip3 install numpy`, Matplotlib con `pip3 install matplotlib`.
 
 ## Cenni teorici
 La trasformata di Fourier discreta (DFT) di un segnale 2D $f(x,y)$ (un'immagine, per esempio) con dimensioni $N \times M$ è:
@@ -63,84 +64,148 @@ Symmetrization...
 Le altre frequenze del kernel sono nulle o prossime allo zero e invertirle dà origine a valori molto elevati. Moltiplicare questi valori per le alte frequenze dell'immagine sfocata porterà all'introduzione di rumore. Di conseguenza è stata definita una soglia sul valore assoluto oltre la quale le frequenze non sono state invertite, ma portate a 1, al fine di non modificare le alte frequenze dell'immagine, comunque già di per sè poco rilevanti in un'immagine naturale. Un processo iterativo a portato a definire 0,7 come valore di soglia medio grazie al quale è stato possibile recuperare circa 2 dB di SNR dalle immagini usate nel test. Ogni immagine avrà, naturalmente, un preciso valore in corrispondenza del quale si potrà recuperare il massimo di dB di SNR.
 
 <p>
-<a href="images/results/plot_3.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/images/results/plot_3.png" width="250"></a>
-<a href="images/results/plot_5.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/images/results/plot_5.png" width="250"></a>
-<a href="images/results/plot_7.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/images/results/plot_7.png" width="250"></a>
+<a href="docs/images/plot_3_3.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/plot_3_3.png" width="300"></a>
+<a href="docs/images/plot_5_5.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/plot_5_5.png" width="300"></a>
+<a href="docs/images/plot_7_7.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/plot_7_7.png" width="300"></a>
 </p>
 
 ### Risultati
-Di seguito si riportano i risultati ottenuti con Lena (qui le immagini sono convertite in `.png`). L'immagine è stata sfocata con una convoluzione (3x3, 5x5, 7x7) e infine sottoposta ad un processo di de-convoluzione (con una soglia di 0,7).
+Di seguito si riportano i risultati ottenuti con Lena (qui le immagini sono convertite in `.png`).
+
+L'immagine è stata sfocata con una convoluzione (3x3, 5x5, 7x7):
 
 <p>
 <a href="docs/images/3_lena_blur.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/3_lena_blur.png" width="300"></a>
-<a href="docs/images/3_lena_deconv.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/3_lena_deconv.png" width="300"></a>
+<a href="docs/images/heatmap_blur_3_lena.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/heatmap_blur_3_lena.png" width="300"></a>
 </p>
 
 <p>
 <a href="docs/images/5_lena_blur.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/5_lena_blur.png" width="300"></a>
-<a href="docs/images/5_lena_deconv.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/5_lena_deconv.png" width="300"></a>
+<a href="docs/images/heatmap_blur_5_lena.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/heatmap_blur_5_lena.png" width="300"></a>
 </p>
 
 <p>
 <a href="docs/images/7_lena_blur.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/7_lena_blur.png" width="300"></a>
+<a href="docs/images/heatmap_blur_7_lena.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/heatmap_blur_7_lena.png" width="300"></a>
+</p>
+
+La de-convoluzione (soglia: 0,7) ha restituito le seguenti immagini:
+
+<p>
+<a href="docs/images/3_lena_deconv.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/3_lena_deconv.png" width="300"></a>
+<a href="docs/images/heatmap_deconv_3_3_lena.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/heatmap_deconv_3_3_lena.png" width="300"></a>
+</p>
+
+<p>
+<a href="docs/images/5_lena_deconv.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/5_lena_deconv.png" width="300"></a>
+<a href="docs/images/heatmap_deconv_5_5_lena.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/heatmap_deconv_5_5_lena.png" width="300"></a>
+</p>
+
+<p>
 <a href="docs/images/7_lena_deconv.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/7_lena_deconv.png" width="300"></a>
+<a href="docs/images/heatmap_deconv_7_7_lena.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/heatmap_deconv_7_7_lena.png" width="300"></a>
 </p>
 
 <table>
   <tr>
-    <th rowspan=2">File</th>
-    <th colspan="2">3x3</th>
-    <th colspan="2">5x5</th>
-    <th colspan="2">7x7</th>
+    <th rowspan="3">File</th>
+    <th colspan="9">SNRs [dB]</th>
   </tr>
   <tr>
-    <th>SNR Blurred</th>
-    <th>SNR De-blurred</th>
-    <th>SNR Blurred</th>
-    <th>SNR De-blurred</th>
-    <th>SNR Blurred</th>
-    <th>SNR De-blurred</th>
+    <th colspan="3">3x3</th>
+    <th colspan="3">5x5</th>
+    <th colspan="3">7x7</th>
+  </tr>
+  <tr>
+    <th>Blurred</th>
+    <th>De-blurred</th>
+    <th>Difference</th>
+    <th>Blurred</th>
+    <th>De-blurred</th>
+    <th>Difference</th>
+    <th>Blurred</th>
+    <th>De-blurred</th>
+    <th>Difference</th>
   </tr>
   <tr>
 <td>sabrina.ppm</td>
-<td> 9.99 dB</td>
-<td> 12.17 dB</td>
-<td> 8.21 dB</td>
-<td> 10.41 dB</td>
-<td> 8.24 dB</td>
-<td> 10.57 dB</td>
+
+<td>9.42 </td>
+<td>12.07 </td>
+<td>2.65 </td>
+
+<td>6.99 </td>
+<td>10.11 </td>
+<td>3.13 </td>
+
+<td>6.92 </td>
+<td>9.91 </td>
+<td>2.99 </td>
   </tr>
   <tr>
 <td>lena.ppm</td>
-<td> 7.38 dB</td>
-<td> 9.61 dB</td>
-<td> 6.24 dB</td>
-<td> 7.85 dB</td>
-<td> 6.27 dB</td>
-<td> 8.08 dB</td>
+
+<td>6.41 </td>
+<td>9.57 </td>
+<td>3.16 </td>
+
+<td>4.25 </td>
+<td>7.60 </td>
+<td>3.35 </td>
+
+<td>4.31 </td>
+<td>7.76 </td>
+<td>3.46 </td>
   </tr>
   <tr>
 <td>sara.ppm</td>
-<td> 6.96 dB</td>
-<td> 11.06 dB</td>
-<td> 5.49 dB</td>
-<td> 8.34 dB</td>
-<td> 5.53 dB</td>
-<td> 8.78 dB</td>
+
+<td>5.17 </td>
+<td>10.42 </td>
+<td>5.24 </td>
+
+<td>2.20 </td>
+<td>6.89 </td>
+<td>4.69 </td>
+
+<td>2.02 </td>
+<td>6.38 </td>
+<td>4.36 </td>
   </tr>
   <tr>
 <td>laura.ppm</td>
-<td> 8.01 dB</td>
-<td> 9.71 dB</td>
-<td> 6.71 dB</td>
-<td> 8.07 dB</td>
-<td> 6.74 dB</td>
-<td> 8.24 dB</td>
+
+<td>5.89 </td>
+<td>8.94 </td>
+<td>3.05 </td>
+
+<td>3.84 </td>
+<td>6.71 </td>
+<td>2.88 </td>
+
+<td>3.84 </td>
+<td>6.81 </td>
+<td>2.97 </td>
   </tr>
 </table>
 
 ## Esperimento 2
 Che succede se si prova a de-sfocare un'immagine con l'inverso di un kernel diverso da quello usato per sfocarla?
+
+<p>
+<a href="docs/images/plot_3_5.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/plot_3_5.png" width="300"></a>
+<a href="docs/images/plot_3_7.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/plot_3_7.png" width="300"></a>
+</p>
+
+<p>
+<a href="docs/images/plot_5_3.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/plot_5_3.png" width="300"></a>
+<a href="docs/images/plot_5_7.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/plot_5_7.png" width="300"></a>
+</p>
+
+<p>
+<a href="images/results/plot_7_3.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/plot_7_3.png" width="300"></a>
+<a href="images/results/plot_7_5.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/plot_7_5.png" width="300"></a>
+</p>
 
 
 [^1]: *Playboy*, vol. 19, [n. 11](https://images4.imagebam.com/cd/10/16/ME12BMO_o.jpg), novembre 1972, Playboy Enterprises.
