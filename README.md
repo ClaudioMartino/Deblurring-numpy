@@ -15,13 +15,13 @@ La trasformata di Fourier discreta (DFT) di un segnale 2D $f(x,y)$ (un'immagine,
 
 $$ F(u,v) = \mathcal{F} [ f(x,y) ] = \sum_{x=0}^{N-1} \sum_{y=0}^{M-1} f(x,y) exp[-j 2 \pi (\frac{ux}{M} + \frac{vy}{N}) ] $$
 
-La convoluzione 2D è:
+La convoluzione discreta 2D è:
 
 $$ g(x,y)= \omega(x,y) * f(x,y) = \sum_{dx=-\infty}^\infty \sum_{dy=-\infty}^\infty \omega (dx,dy)f(x-dx,y-dy) $$
 
-$$ g(x,y)= f(x,y) * \omega(x,y) = \sum_{dx=-\infty}^\infty \sum_{dy=-\infty}^\infty \omega (x-dx,y-dy)f(dx,dy) $$
+$$ g(x,y)= f(x,y) * \omega(x,y) $$
 
-Un filtro gaussiano 3x3 consiste in una convoluzione dove $\omega(x,y)$ è una matrice (il "[kernel](https://en.wikipedia.org/wiki/Kernel_(image_processing))") definita come
+Un filtro gaussiano consiste in una convoluzione dove $\omega(x,y)$ è una matrice (il "[kernel](https://en.wikipedia.org/wiki/Kernel_(image_processing))") che rappresenta una curva normale discreta. Il kernel 3x3, per esempio, è definito come
 
 $$
 \frac{1}{16}
@@ -32,43 +32,48 @@ $$
 \end{bmatrix}
 $$
 
-Kernel 5x5 e 7x7 sono utlizzabili. Nel dominio delle frequenze, la convoluzione corrisponde al prodotto, quindi:
+Nel dominio delle frequenze:
 
-$$ G(u,v) = F(u,v) \Omega(u,v) $$
+$$ F(u,v) = \mathcal{F} [ f(x,y) ] $$
+
+$$ \Omega(u,v) = \mathcal{F} [ \omega(x,y) ] $$
+
+$$ G(u,v) = \mathcal{F} [ g(x,y) ] = \mathcal{F} [ f(x,y) * \omega(x,y) ] = F(u,v) \Omega(u,v) $$
 
 Di conseguenza è possibile recuperare il segnale originale calcolando
 
-$$ F(u,v) = \frac{G(u,v)}{\Omega(u,v)} $$
-
-e prendendo la trasformata di Fourier inversa (IDFT).
+$$ f(x, y) = \mathcal{F}^{-1} [ F(u,v) ] = \mathcal{F}^{-1} [\frac{G(u,v)}{\Omega(u,v)} ] $$
 
 > [!NOTE]
 > I precedenti calcoli non tengono in considerazione il rumore introdotto ad ogni passaggio. In quel caso bisognerebbe stimare $\hat{f}(x,y)$ che minimizza l'errore quadratico medio $\mathbb{E} \left| f(x,y) - \hat{f}(x,y) \right|^2$ (v. [deconvoluzione di Wiener](https://en.wikipedia.org/wiki/Wiener_deconvolution)).
 
-## Procedura
-Come input abbiamo un'immagine RGB con estensione [`.ppm`](https://en.wikipedia.org/wiki/Netpbm). Il file viene immediatamente convertito in scala di grigi e salvato come `.pgm`. Nella repository sono già presenti varie immagini di esempio $512 \times 512$, tra cui la classica [Lenna](https://en.wikipedia.org/wiki/Lenna)[^1] e la meno classica (ma ben più importante) Sabrina Salerno[^2].
-
-L'immagine in bianco e nero viene filtrata in modo da ottenerne una versione sfocata. Il filtro di Gauss è implementato con una convoluzione 2D.
-
-In base al kernel scelto, viene calcolato l'inverso della sua trasformata di Fourier (un'altra gaussiana) che verrà poi moltiplicato per lo spettro dell'immagine sfocata. Il problema si pone con le altre frequenze, dato che sono nulle o prossime allo zero e invertirle dà origine a valori molto elevati. Moltiplicare questi valori per le alte frequenze dell'immagine sfocata porterà all'introduzione di rumore. Di conseguenza è stata definita una soglia sul valore assoluto oltre la quale le frequenze non sono state invertite, ma portate a uno, al fine di non modificare le alte frequenze dell'immagine, comunque poco rilevanti in un'immagine naturale. Un processo iterativo a portato a definire 0,7 come valore di soglia medio grazie al quale è stato possibile recuperare circa 2 dB di SNR dalle immagini usate nel test. Ogni immagine avrà, naturalmente, un preciso valore in corrispondenza del quale si potrà recuperare il massimo di dB di SNR.
-
-<a href="images/results/plot_3.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/images/results/plot_3.png"></a>
-
-<a href="images/results/plot_5.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/images/results/plot_5.png"></a>
-
-<a href="images/results/plot_7.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/images/results/plot_7.png"></a>
-
-Una volta definito l'inverso della DFT del kernel, questo viene moltiplicato per lo spettro dell'immagine. Del risultato viene conservata solo la parte reale, dato che la parte immaginaria conterrà solo rumore. I volori superiori a 255 e quelli inferiori a 0 vengono tagliati e il tutto viene convertito in byte.
-
-## Risultati
-Di seguito si riportano i risultati ottenuti con Lena (qui le immagini sono convertite in `.png`). Innanzitutto l'immagine di input è stata convertita in scala di grigi.
+## Esperimento 1
+### Descrizione
+Come input abbiamo usato un'immagine RGB con estensione [`.ppm`](https://en.wikipedia.org/wiki/Netpbm). Il file viene immediatamente convertito in scala di grigi e salvato come `.pgm`. Nella repository sono già presenti varie immagini di esempio $512 \times 512$, tra cui la classica [Lenna](https://en.wikipedia.org/wiki/Lenna)[^1] e la meno classica (ma ben più importante) Sabrina Salerno[^2].
 
 <p>
 <a href="docs/images/lena.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/lena.png" width="300"></a>
 <a href="docs/images/lena_gray.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/lena_gray.png" width="300"></a>
 </p>
 
-L'immagine è stata sfocata con una convoluzione (3x3, 5x5, 7x7).
+L'immagine in bianco e nero viene poi filtrata in modo da ottenerne una versione sfocata tramite convoluzione. L'energia presente nell'immagine sfocata è confrontata con quella dell'immagine originale e viene calcolato l'SNR. In base al kernel scelto (3x3, 5x5, 7x7), viene calcolato l'inverso della sua trasformata di Fourier (un'altra gaussiana) che verrà poi moltiplicato per lo spettro dell'immagine sfocata. Del risultato viene conservata solo la parte reale, dato che la parte immaginaria conterrà solo rumore. I volori superiori a 255 e quelli inferiori a 0 vengono tagliati e il tutto viene convertito in byte. Viene calcolato anche l'SNR dell'immagine risultante e confrontato con quello dell'immagine sfocata, se superiore si conclude che la qualità dell'immagine è migliorata.
+
+### Problemi
+#### Problema 1
+I bordi...
+
+
+#### Problema 2
+Le altre frequenze del kernel sono nulle o prossime allo zero e invertirle dà origine a valori molto elevati. Moltiplicare questi valori per le alte frequenze dell'immagine sfocata porterà all'introduzione di rumore. Di conseguenza è stata definita una soglia sul valore assoluto oltre la quale le frequenze non sono state invertite, ma portate a 1, al fine di non modificare le alte frequenze dell'immagine, comunque già di per sè poco rilevanti in un'immagine naturale. Un processo iterativo a portato a definire 0,7 come valore di soglia medio grazie al quale è stato possibile recuperare circa 2 dB di SNR dalle immagini usate nel test. Ogni immagine avrà, naturalmente, un preciso valore in corrispondenza del quale si potrà recuperare il massimo di dB di SNR.
+
+<p>
+<a href="images/results/plot_3.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/images/results/plot_3.png" width="300"></a>
+<a href="images/results/plot_5.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/images/results/plot_5.png" width="300"></a>
+<a href="images/results/plot_7.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/images/results/plot_7.png" width="300"></a>
+</p>
+
+### Risultati
+Di seguito si riportano i risultati ottenuti con Lena (qui le immagini sono convertite in `.png`). L'immagine è stata sfocata con una convoluzione (3x3, 5x5, 7x7) e infine recuperata. con una soglia di 0,7.
 
 <p>
 <a href="docs/images/3_lena_blur.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/3_lena_blur.png" width="300"></a>
@@ -85,7 +90,7 @@ L'immagine è stata sfocata con una convoluzione (3x3, 5x5, 7x7).
 <a href="docs/images/7_lena_deconv.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/7_lena_deconv.png" width="300"></a>
 </p>
 
-L'operazione di de-convoluzione restituisce un'immagine più nitida, attenuando gli effetti della sfocatura.
+Come si può vedere l'operazione di de-convoluzione restituisce un'immagine più nitida, attenuando gli effetti della sfocatura.
 
 <table>
   <tr>
@@ -140,6 +145,9 @@ L'operazione di de-convoluzione restituisce un'immagine più nitida, attenuando 
   </tr>
 </table>
 
-## Fonti
+## Esperimento 2
+Che succede se si prova a de-sfocare un'immagine con l'inverso di un kernel diverso da quello usato per sfocarla?
+
+
 [^1]: *Playboy*, vol. 19, [n. 11](https://images4.imagebam.com/cd/10/16/ME12BMO_o.jpg), novembre 1972, Playboy Enterprises.
 [^2]: *Playmen*, anno XXII, [n. 9](https://images3.imagebam.com/8e/1b/c6/54f4fd195104304.jpg), settembre 1988, Tattilo Editrice.
