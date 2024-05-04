@@ -127,7 +127,7 @@ def rearrange_FFT(fourier):
     # Take the logarithm of the absolute value + 1
     fourier_abs_log = np.log10(fourier_abs + 1)
     # Scale between 0 and 255
-    return scale(fourier_abs_log)
+    return scale(fourier_abs_log).astype(np.uint8)
 
 def compute_ESD(x):
     return x * np.conjugate(x)
@@ -154,11 +154,12 @@ def zero_pad(x, height_new, width_new):
     assert width_new >= width 
     assert height_new >= height
     out = np.zeros([height_new, width_new], dtype=(x.dtype))
-    sh_v = height_new // 2 - height // 2
-    sh_h = width_new // 2  - width // 2
+    # The kernel is shifted to occupy the 4 corner.
+    # The middle pixel is in the upper-left corner.
     for j in range(height):
-        for i in range(width):
-            out[j+sh_v][i+sh_h]=x[j][i]
+      for i in range(width):
+        out[0 + j - height//2][0 + i - width//2] = x[0 + j][0 + i]
+
     return out
 
 def gaussian_kernel(size):

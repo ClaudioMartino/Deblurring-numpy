@@ -7,7 +7,7 @@ La presente repository ha puramente scopi educativi. Consiste in una semplice im
 - Numpy 1.23.0
 - Matplotlib 3.8.4
 
-Ho cercato di limitare al minimo le librerie esterne, solo Numpy è necessario (semplicità di gestione di array 2D e presenza di DFT), ma non escludo un giorno di creare uno script totalmente indipendente. Numpy può essere installato con `pip3 install numpy`, Matplotlib con `pip3 install matplotlib`.
+Ho cercato di limitare al minimo le librerie esterne, solo Numpy è necessario (semplicità di gestione di array 2D e presenza di DFT), ma non escludo un giorno di creare uno script totalmente indipendente. Numpy può essere installato con `pip3 install numpy`. Se volete salvare dei grafici anche Matplotlib deve essere installato con `pip3 install matplotlib`.
 
 ## Cenni teorici
 La trasformata di Fourier discreta (DFT) di un segnale 2D $f(x,y)$ (un'immagine, per esempio) con dimensioni $N \times M$ è:
@@ -44,7 +44,7 @@ dove $\mathcal{F}^{-1}$ è la trasformata di Fourier discreta inversa (IDFT).
 
 ## Esperimento 1
 ### Descrizione
-Come input è stata usata un'immagine RGB con estensione [`.ppm`](https://en.wikipedia.org/wiki/Netpbm). Il file viene convertito in scala di grigi e salvato come `.pgm`. Nella repository sono già presenti varie immagini di esempio $512 \times 512$, tra cui la classica [Lenna](https://en.wikipedia.org/wiki/Lenna)[^1] e la meno classica Sabrina Salerno[^2].
+Come input è stata usata un'immagine RGB con estensione [`.ppm`](https://en.wikipedia.org/wiki/Netpbm). Il file viene convertito in scala di grigi e salvato come `.pgm`. Nella repository sono già presenti varie immagini di esempio $512 \times 512$, tra cui la classica [Lenna](https://en.wikipedia.org/wiki/Lenna)[^1] e la meno classica Sabrina Salerno[^2]. Altre immagini .ppm possono essere utilizzate, basta aggiungerle alla medesima cartella.
 
 <p>
 <a href="docs/images/lena.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/lena.png" width="300"></a>
@@ -58,15 +58,15 @@ L'immagine in bianco e nero viene sfocata tramite convoluzione. L'energia presen
 I bordi...
 
 #### Problema 2
-Symmetrization...
+La Symmetrization dell'input è fondamentale per evitare di introdurre alte frequenze e invalidare ogni misura.
 
 #### Problema 3
-Le altre frequenze del kernel sono nulle o prossime allo zero e invertirle dà origine a valori molto elevati. Moltiplicare questi valori per le alte frequenze dell'immagine sfocata porterà all'introduzione di rumore. Di conseguenza è stata definita una soglia sul valore assoluto oltre la quale le frequenze non sono state invertite, ma portate a 1, al fine di non modificare le alte frequenze dell'immagine, comunque già di per sè poco rilevanti in un'immagine naturale. Un processo iterativo a portato a definire 0,7 come valore di soglia medio grazie al quale è stato possibile recuperare circa 2 dB di SNR dalle immagini usate nel test. Ogni immagine avrà, naturalmente, un preciso valore in corrispondenza del quale si potrà recuperare il massimo di dB di SNR.
+Le alte frequenze del kernel sono nulle o prossime allo zero e invertirle dà origine a valori molto elevati. Moltiplicare questi valori per le alte frequenze dell'immagine sfocata porterà all'introduzione di rumore. Di conseguenza è stata definita una soglia sul valore assoluto oltre la quale le frequenze non sono state invertite, ma portate a 1, al fine di non modificare le alte frequenze dell'immagine, comunque già di per sè poco rilevanti in un'immagine naturale. Un processo iterativo a portato a definire 0,07 come valore di soglia medio grazie al quale è stato possibile recuperare circa 2 dB di SNR dalle immagini usate nel test. Ogni immagine avrà, naturalmente, un preciso valore in corrispondenza del quale si potrà recuperare il massimo di dB di SNR.
 
 <p>
-<a href="docs/images/plot_3_3.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/plot_3_3.png" width="300"></a>
-<a href="docs/images/plot_5_5.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/plot_5_5.png" width="300"></a>
-<a href="docs/images/plot_7_7.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/plot_7_7.png" width="300"></a>
+<a href="docs/images/plot_3_3.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/plot_3_3.png" width="250"></a>
+<a href="docs/images/plot_5_5.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/plot_5_5.png" width="250"></a>
+<a href="docs/images/plot_7_7.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/plot_7_7.png" width="250"></a>
 </p>
 
 ### Risultati
@@ -89,7 +89,7 @@ L'immagine è stata sfocata con una convoluzione (3x3, 5x5, 7x7):
 <a href="docs/images/heatmap_blur_7_lena.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/heatmap_blur_7_lena.png" width="300"></a>
 </p>
 
-La de-convoluzione (soglia: 0,7) ha restituito le seguenti immagini:
+La de-convoluzione (soglia: 0,07) ha restituito le seguenti immagini:
 
 <p>
 <a href="docs/images/3_lena_deconv.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/3_lena_deconv.png" width="300"></a>
@@ -131,61 +131,61 @@ La de-convoluzione (soglia: 0,7) ha restituito le seguenti immagini:
 <td>sabrina.ppm</td>
 
 <td>9.42 </td>
-<td>12.07 </td>
-<td>2.65 </td>
+<td>12.18 </td>
+<td>2.77 </td>
 
 <td>6.99 </td>
-<td>10.11 </td>
-<td>3.13 </td>
+<td>10.26 </td>
+<td>3.27 </td>
 
 <td>6.92 </td>
-<td>9.91 </td>
-<td>2.99 </td>
+<td>10.03 </td>
+<td>3.11 </td>
   </tr>
   <tr>
 <td>lena.ppm</td>
 
 <td>6.41 </td>
-<td>9.57 </td>
-<td>3.16 </td>
+<td>9.70 </td>
+<td>3.29 </td>
 
 <td>4.25 </td>
-<td>7.60 </td>
-<td>3.35 </td>
+<td>7.76 </td>
+<td>3.50 </td>
 
 <td>4.31 </td>
-<td>7.76 </td>
-<td>3.46 </td>
+<td>7.91 </td>
+<td>3.60 </td>
   </tr>
   <tr>
 <td>sara.ppm</td>
 
 <td>5.17 </td>
-<td>10.42 </td>
-<td>5.24 </td>
+<td>10.55 </td>
+<td>5.38 </td>
 
 <td>2.20 </td>
-<td>6.89 </td>
-<td>4.69 </td>
+<td>7.07 </td>
+<td>4.88 </td>
 
 <td>2.02 </td>
-<td>6.38 </td>
-<td>4.36 </td>
+<td>6.52 </td>
+<td>4.50 </td>
   </tr>
   <tr>
 <td>laura.ppm</td>
 
 <td>5.89 </td>
-<td>8.94 </td>
-<td>3.05 </td>
+<td>9.07 </td>
+<td>3.18 </td>
 
 <td>3.84 </td>
-<td>6.71 </td>
-<td>2.88 </td>
+<td>6.88 </td>
+<td>3.04 </td>
 
 <td>3.84 </td>
-<td>6.81 </td>
-<td>2.97 </td>
+<td>6.95 </td>
+<td>3.11 </td>
   </tr>
 </table>
 
@@ -207,6 +207,7 @@ Che succede se si prova a de-sfocare un'immagine con l'inverso di un kernel dive
 <a href="images/results/plot_7_5.png"><img src="https://raw.githubusercontent.com/ClaudioMartino/Deblurring-numpy/main/docs/images/plot_7_5.png" width="300"></a>
 </p>
 
+Risulta evidente che la conoscenza del filtro di sfocatura è fondamentale per recuperare al meglio l'immagine originale. Tuttavia il de-blurring con dimensioni inferiori a quelle della sfocatura ha comunque permesso di recuperare qualche dB. Inoltre i filtri 5x5 e 7x7 paiono molto simili.
 
 [^1]: *Playboy*, vol. 19, [n. 11](https://images4.imagebam.com/cd/10/16/ME12BMO_o.jpg), novembre 1972, Playboy Enterprises.
 [^2]: *Playmen*, anno XXII, [n. 9](https://images3.imagebam.com/8e/1b/c6/54f4fd195104304.jpg), settembre 1988, Tattilo Editrice.
