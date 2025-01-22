@@ -1,8 +1,9 @@
 import numpy as np
+from os.path import splitext
 
 def create_file_name(directory, base, suffix):
     ext = ".pgm"
-    return directory + "/" + base[:-4] + "_" + suffix + ext
+    return directory + "/" + splitext(base)[0] + "_" + suffix + ext
 
 def open_ppm_as_array(path_to_file):
     lines = []
@@ -30,7 +31,44 @@ def open_ppm_as_array(path_to_file):
         for i in range(3*width):
             rgb_image_array[j][i] = lines[i+j*(3*width)]
 
+    # Scale between 0 and 255 if max value is smaller than 255
+    if(max_value != 255):
+       rgb_image_array = scale(rgb_image_array)
+
     return rgb_image_array
+
+def open_pgm_as_array(path_to_file):
+    lines = []
+    # Open .pgm file
+    with open(path_to_file, "rb") as f:
+        # Check header
+        line = f.readline()
+        assert line == b'P2\n'
+
+        line = f.readline().split()
+        width  = int(line[0])
+        height = int(line[1])
+
+        line = f.readline()
+        max_value = int(line[:-1])
+        assert max_value <= 255
+
+        # Read pixels
+        lines = f.read()
+        assert len(lines) == width*height
+
+    # Save pixels to 2D array
+    image_array = np.empty([height, width], dtype=np.uint8)
+    for j in range(height):
+        for i in range(width):
+            image_array[j][i] = lines[i+j*width]
+
+    # Scale between 0 and 255 if max value is smaller than 255
+    if(max_value != 255):
+       image_array = scale(image_array)
+
+    return image_array
+
 
 def rgb_to_grayscale(rgb_image):
     height, width = rgb_image.shape
@@ -51,7 +89,6 @@ def convolution(im, c, flag):
     assert c.shape[0] == c.shape[1]
     n = c.shape[0]
 
-    assert n in (3,5,7)
     brd = int((n-1)/2)
 
     h, w = im.shape
@@ -162,15 +199,34 @@ def zero_pad(x, height_new, width_new):
 
     return out
 
-def gaussian_kernel(size):
-    assert size in [3,5,7]
+def gaussian_blur_kernel(size, precise):
+    assert size % 2 == 1
+    if(precise):
+        kernel = np.empty((size, size))
+        coord = range(-(size//2), size//2+1)
+        # Variance defined as size / 2
+        sigma_sq = size/2
+        for y in range(size):
+            for x in range(size):
+                kernel[y][x] = np.exp(-(pow(coord[x], 2) + pow(coord[y], 2)) / (2 * sigma_sq)) / (2 * np.pi * sigma_sq)
+        alpha = np.sum(kernel)
+        kernel /= alpha
+    else:
+        assert size in [3, 5, 7]
+        # TODO with the Pascal triangle
+        if size == 3:
+            kernel = np.array([[1,2,1],[2,4,2],[1,2,1]]) / 16
+        elif size == 5:
+            kernel = np.array([[1,4,7,4,1],[4,16,26,16,4],[7,26,41,26,7],[4,16,26,16,4],[1,4,7,4,1]]) / 273
+        elif size == 7:
+            kernel = np.array([[0,0,1,2,1,0,0],[0,3,13,22,13,3,0],[1,13,59,97,59,13,1],[2,22,97,159,97,22,2],[1,13,59,97,59,13,1],[0,3,13,22,13,3,0],[0,0,1,2,1,0,0]]) / 1003
+    return kernel
 
+def motion_blur_kernel(size):
+    assert size in [3]
+    # TODO there are plenty of kernels for this
     if size == 3:
-        return np.array([[1,2,1],[2,4,2],[1,2,1]]) / 16
-    elif size == 5:
-        return np.array([[1,4,7,4,1],[4,16,26,16,4],[7,26,41,26,7],[4,16,26,16,4],[1,4,7,4,1]]) / 273
-    elif size == 7:
-        return np.array([[0,0,1,2,1,0,0],[0,3,13,22,13,3,0],[1,13,59,97,59,13,1],[2,22,97,159,97,22,2],[1,13,59,97,59,13,1],[0,3,13,22,13,3,0],[0,0,1,2,1,0,0]]) / 1003
+        return np.array([[1,2,1],[1,2,1],[1,2,1]]) / 12
 
 def symmetrization(im):
     height, width = im.shape

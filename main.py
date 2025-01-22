@@ -5,23 +5,24 @@ from os import listdir
 from os.path import splitext
 
 # Arguments
-valid_inputs = [splitext(f)[0] for f in listdir('images/sample_input/') if splitext(f)[1] == '.ppm']
+valid_inputs = [f for f in listdir('images/sample_input/') if (splitext(f)[1] == '.ppm' or splitext(f)[1] == '.pgm')]
 valid_inputs.append('all')
-valid_kernel_sizes = [3, 5, 7]
 
 parser = argparse.ArgumentParser(description="Deblurring", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-parser.add_argument("-i", "--input-image", choices=valid_inputs, default=[valid_inputs[1]], nargs="+", help="Input image")
-parser.add_argument("-k", "--kernel-size", type=int, choices=valid_kernel_sizes, default=[valid_kernel_sizes[0]], nargs="+", help="Kernel size to blur")
-parser.add_argument("-k2", "--kernel-size-2", type=int, choices=valid_kernel_sizes, nargs="+", help="Kernel size to de-blur")
-parser.add_argument("-t", "--threshold", type=float, default=0.07, help="Inversion threshold")
-parser.add_argument("-s", "--plot-step", type=float, default=0.01, help="Plot step")
+parser.add_argument("-i", "--input-image", choices=valid_inputs, default=["lena.ppm"], nargs="+", help="Input image")
+parser.add_argument("-k", "--kernel-size",    type=int, nargs="+", help="Kernel size to blur", default=[3])
+parser.add_argument("-k2", "--kernel-size-2", type=int, nargs="+", help="Kernel size to de-blur")
+parser.add_argument("-t", "--threshold",      type=float, default=0.07, help="Inversion threshold")
+parser.add_argument("-s", "--plot-step",      type=float, default=0.01, help="Plot step")
 parser.add_argument("-p", "--plot", action='store_true', help="Run the SNRs for different thresholds and plot the result")
-parser.add_argument("--no-images", action='store_true', help="Stop the creation of the image files (not the plots)")
-parser.add_argument("--no-symm", action='store_true', help="Perform the operations without symmetrization")
+parser.add_argument("--no-images",  action='store_true', help="Stop the creation of the image files (not the plots)")
+parser.add_argument("--no-symm",    action='store_true', help="Perform the operations without symmetrization")
+parser.add_argument("--precise",    action='store_true', help="Use the precise 2D Gaussian function as kernel")
 
 args = parser.parse_args()
 config = vars(args)
+
 print(config)
 
 # Directories
@@ -33,7 +34,6 @@ output_images_dir = images_dir + "results/"
 input_image_name_arr = config['input_image']
 if(input_image_name_arr == ['all']):
   input_image_name_arr = valid_inputs[:-1]
-input_image_name_arr = [x + '.ppm' for x in input_image_name_arr]
 
 kernel_sizes = config['kernel_size']
 
@@ -51,40 +51,52 @@ plot_step = config['plot_step']
 
 no_images = config['no_images']
 no_symm = config['no_symm']
+precise_kernel = config['precise']
+
+valid_kernel_sizes = [3, 5, 7]
+for k in kernel_sizes:
+  if (precise_kernel == False and k not in valid_kernel_sizes) or k % 2 == 0:
+    raise Exception("Invalid kernel sizes!") 
 
 # Loop over each image
 snrs_kernel_image = []
 for input_image_name in input_image_name_arr:
+  # Ouput file names
   if(not no_images):
-    # Ouput file names
     grayscale_image = create_file_name(output_images_dir, input_image_name, "gray")
     if(not no_symm):
       symmetric_image = create_file_name(output_images_dir, input_image_name, "symm")
-    dft_image       = create_file_name(output_images_dir, input_image_name, "dft" )
-    idft_image      = create_file_name(output_images_dir, input_image_name, "idft")
+    dft_image = create_file_name(output_images_dir, input_image_name, "dft" )
+    idft_image = create_file_name(output_images_dir, input_image_name, "idft")
 
-  # Open .ppm file as array
+  # Open input file as array
   print("Opening " + input_image_name)
   input_image = input_images_dir + input_image_name
-  rgb_image_array = open_ppm_as_array(input_image)
-  height, width = rgb_image_array.shape
-  width //= 3
+  # TODO open pgm
+  if(splitext(input_image_name)[1] == '.ppm'):
+    rgb_image_array = open_ppm_as_array(input_image)
+    height, width = rgb_image_array.shape
+    width //= 3
+  else:
+    grayscale_image_array = open_pgm_as_array(input_image)
+    height, width = grayscale_image_array.shape
   print("Height: " + str(height) + "; Width: " + str(width))
   
   # Convert RGB array to grayscale
-  grayscale_image_array = rgb_to_grayscale(rgb_image_array)
-  if(not no_images):
-    save_pgm_file(grayscale_image_array, grayscale_image)
-    print("> Created grayscale " + grayscale_image)
+  if(splitext(input_image_name)[1] == '.ppm'):
+    grayscale_image_array = rgb_to_grayscale(rgb_image_array)
+    if(not no_images):
+      save_pgm_file(grayscale_image_array, grayscale_image)
+      print("> Created grayscale " + grayscale_image)
 
-  # TODO with or without symm
   # Symmetrization to avoid introduction of high freqs
   if(not no_symm):
     symm_image_array = symmetrization(grayscale_image_array)
 
-  # Loop over each kernel size
+  # Loop over each kernel size (blur, de-blur)
   snrs_kernel = []
   for kernel_size, kernel_size_2 in zip(kernel_sizes, kernel_sizes_2):
+    # Create file names
     if(not no_images):
       blurred_image        = create_file_name(output_images_dir, str(kernel_size) + '_' + input_image_name, "blur")
       blurred_image_f      = create_file_name(output_images_dir, str(kernel_size) + '_' + input_image_name, "blur_f")
@@ -109,9 +121,10 @@ for input_image_name in input_image_name_arr:
     #idft_image_array = np.fft.ifft2(dft_image_array)
     #save_pgm_file(idft_image_array[0:width, 0:height].real.astype(np.uint8), idft_image)
     #print("> Created IDFT " + idft_image)
-   
-    # Convolution in space domain
-    kernel_blur = gaussian_kernel(kernel_size)
+
+    # Blurring: convolution in space domain
+    kernel_blur = gaussian_blur_kernel(kernel_size, precise_kernel)
+    #kernel_blur = motion_blur_kernel(kernel_size)
     blurred_image_array = convolution(grayscale_image_array, kernel_blur, 1)
     if(not no_images):
       save_pgm_file(blurred_image_array, blurred_image)
@@ -120,6 +133,16 @@ for input_image_name in input_image_name_arr:
       diff_image_array = np.abs((grayscale_image_array).astype(np.int16) - (blurred_image_array).astype(np.int16)).astype(np.uint8)
       heatmap(diff_image_array, 'heatmap_blur_' + str(kernel_size) + '_' + input_image_name.split('.')[0])
       print("> Created heatmap original vs blurred")
+
+    # Blurring: multiplication in frequency domain
+    # TODO
+    #dft_blurred_image = dft_image_array * dft_kernel_blur
+    #save_pgm_file(rearrange_FFT(dft_blurred_image), dft_blur_image_f)
+    #print("> Created DFT blurred in Fourier " + dft_blur_image_f)
+    #blurred_image_array = (np.fft.ifft2(dft_image_array * dft_kernel_blur)).real.astype(np.uint8)
+    #save_pgm_file(blurred_image_array[0:width, 0:height], blurred_image_f)
+    #print("> Created blurred in Fourier " + blurred_image_f)
+    #print("SNR after blurring in Fourier: " + str(compute_SNR_in_dB(grayscale_image_array, blurred_image_array[0:width, 0:height])) + " dB")
 
     blur_snr = compute_SNR_in_dB(grayscale_image_array, blurred_image_array)
     print("SNR after blurring: " + str(blur_snr) + " dB")
@@ -135,7 +158,7 @@ for input_image_name in input_image_name_arr:
     
     # Inverse kernel
     if(kernel_size_2 != kernel_size):
-      kernel_blur = gaussian_kernel(kernel_size_2)
+      kernel_blur = gaussian_blur_kernel(kernel_size_2)
     if(not no_symm):
       zero_padded_kernel = zero_pad(kernel_blur, symm_image_array.shape[0], symm_image_array.shape[1])
     else:
@@ -144,16 +167,7 @@ for input_image_name in input_image_name_arr:
     if(not no_images):
       save_pgm_file(rearrange_FFT(dft_kernel_blur), dft_kernel_image)
       print("> Created abs log scaled DFT kernel " + dft_kernel_image)
-    
-    # Product in Fourier domain
-    #dft_blurred_image = dft_image_array * dft_kernel_blur
-    #save_pgm_file(rearrange_FFT(dft_blurred_image), dft_blur_image_f)
-    #print("> Created DFT blurred in Fourier " + dft_blur_image_f)
-    #blurred_image_array = (np.fft.ifft2(dft_image_array * dft_kernel_blur)).real.astype(np.uint8)
-    #save_pgm_file(blurred_image_array[0:width, 0:height], blurred_image_f)
-    #print("> Created blurred in Fourier " + blurred_image_f)
-    #print("SNR after blurring in Fourier: " + str(compute_SNR_in_dB(grayscale_image_array, blurred_image_array[0:width, 0:height])) + " dB")
-    
+   
     if(plot):
       limits = np.arange(0.0+plot_step, 1.0, plot_step)
       snrs = []
